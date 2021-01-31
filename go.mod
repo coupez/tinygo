@@ -11,5 +11,5 @@ require (
 	github.com/marcinbor85/gohex v0.0.0-20200531091804-343a4b548892
 	go.bug.st/serial v1.0.0
 	golang.org/x/tools v0.0.0-20200216192241-b320d3a0f5a2
-	tinygo.org/x/go-llvm v0.0.0-20210116180121-1bbb341ef8d0
+	tinygo.org/x/go-llvm v0.0.0-20210128124803-a5e41b228129
 )
