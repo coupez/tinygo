@@ -44,6 +44,24 @@ func parseConstExpr(t *tokenizer) (ast.Expr, *scanner.Error) {
 		}
 		t.Next()
 		return expr, nil
+	case token.OR:
+		x, err := parseConst(t.pos-token.Pos(len(t.value)), t.fset, t.value)
+		if err != nil {
+			return nil, err
+		}
+		t.pos++
+		expr := &ast.BinaryExpr{
+			X:     x,
+			OpPos: t.pos,
+			Op:    t.token,
+		}
+		t.Next()
+		y, err := parseConstExpr(t)
+		if err != nil {
+			return nil, err
+		}
+		expr.Y = y
+		return expr, nil
 	case token.INT, token.FLOAT, token.STRING, token.CHAR:
 		expr := &ast.BasicLit{
 			ValuePos: t.pos,
@@ -114,12 +132,6 @@ func (t *tokenizer) Next() {
 		}
 		c := t.buf[0]
 		switch {
-		case c == ' ' || c == '\f' || c == '\n' || c == '\r' || c == '\t' || c == '\v':
-			// Skip whitespace.
-			// Based on this source, not sure whether it represents C whitespace:
-			// https://en.cppreference.com/w/cpp/string/byte/isspace
-			t.pos++
-			t.buf = t.buf[1:]
 		case c == '(' || c == ')':
 			// Single-character tokens.
 			switch c {
@@ -131,6 +143,20 @@ func (t *tokenizer) Next() {
 			t.value = t.buf[:1]
 			t.buf = t.buf[1:]
 			return
+		}
+		if i := strings.IndexRune(t.buf, '|'); i >= 0 {
+			t.token = token.OR
+			t.value = t.buf[:i]
+			t.buf = t.buf[i+1:]
+			return
+		}
+		switch {
+		case c == ' ' || c == '\f' || c == '\n' || c == '\r' || c == '\t' || c == '\v':
+			// Skip whitespace.
+			// Based on this source, not sure whether it represents C whitespace:
+			// https://en.cppreference.com/w/cpp/string/byte/isspace
+			t.pos++
+			t.buf = t.buf[1:]
 		case c >= '0' && c <= '9':
 			// Numeric constant (int, float, etc.).
 			// Find the last non-numeric character.

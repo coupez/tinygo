@@ -31,6 +31,16 @@ func TestParseConst(t *testing.T) {
 		{`0b10`, `0b10`},
 		{`0x1234_5678`, `0x1234_5678`},
 		{`5 5`, `error: 1:3: unexpected token INT`}, // test for a bugfix
+		{`4|3`, `4 | 3`},
+		{`4 | 3`, `4 | 3`},
+		{`4 | 3 | 5`, `4 | (3 | 5)`},
+		{`(4 | 3)`, `(4 | 3)`},
+		{`(4 | 3 | 5)`, `(4 | (3 | 5))`},
+		{`4 | 3 3`, `error: 1:7: unexpected token INT`},
+		{`4|3 3`, `error: 1:5: unexpected token INT`},
+		{`4 |`, `error: 1:4: empty constant`},
+		{`|`, `error: 1:1: unexpected token |`},
+		{`4 | 3 | `, `error: 1:9: empty constant`},
 	} {
 		fset := token.NewFileSet()
 		startPos := fset.AddFile("", -1, 1000).Pos(0)
