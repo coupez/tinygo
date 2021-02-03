@@ -132,6 +132,13 @@ func (t *tokenizer) Next() {
 		}
 		c := t.buf[0]
 		switch {
+		case c == ' ' || c == '\f' || c == '\n' || c == '\r' || c == '\t' || c == '\v':
+			// Skip whitespace.
+			// Based on this source, not sure whether it represents C whitespace:
+			// https://en.cppreference.com/w/cpp/string/byte/isspace
+			t.pos++
+			t.buf = t.buf[1:]
+			continue
 		case c == '(' || c == ')':
 			// Single-character tokens.
 			switch c {
@@ -144,6 +151,7 @@ func (t *tokenizer) Next() {
 			t.buf = t.buf[1:]
 			return
 		}
+
 		if i := strings.IndexRune(t.buf, '|'); i >= 0 {
 			t.token = token.OR
 			t.value = t.buf[:i]
@@ -151,12 +159,6 @@ func (t *tokenizer) Next() {
 			return
 		}
 		switch {
-		case c == ' ' || c == '\f' || c == '\n' || c == '\r' || c == '\t' || c == '\v':
-			// Skip whitespace.
-			// Based on this source, not sure whether it represents C whitespace:
-			// https://en.cppreference.com/w/cpp/string/byte/isspace
-			t.pos++
-			t.buf = t.buf[1:]
 		case c >= '0' && c <= '9':
 			// Numeric constant (int, float, etc.).
 			// Find the last non-numeric character.
